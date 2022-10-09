@@ -1,5 +1,5 @@
 {
-  "private": "true",
+  "private": "false",
   "displayName": "DIY HomeKit",
   "name": "@MedTecDev/homebridge-diyHomekit",
   "version": "1.0.0",
