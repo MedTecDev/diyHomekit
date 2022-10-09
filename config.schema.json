@@ -1,5 +1,5 @@
 {
-  "pluginAlias": "ExampleHomebridgePlugin",
+  "pluginAlias": "DIY_Homekit",
   "pluginType": "platform",
   "singular": true,
   "schema": {
@@ -9,7 +9,13 @@
         "title": "Name",
         "type": "string",
         "required": true,
-        "default": "Example Dynamic Platform"
+        "default": "DIY Homekit"
+      },
+      "updateInterval": {
+        "title": "Check lightstate interval [ms]",
+        "type": "number",
+        "required": true,
+        "default": 30000
       }
     }
   }

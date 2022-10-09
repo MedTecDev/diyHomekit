@@ -1,42 +1,25 @@
 import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, Service, Characteristic } from 'homebridge';
-
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
-import { ExamplePlatformAccessory } from './platformAccessory';
+import { Lightstripe } from './lightstripe';
 
-/**
- * HomebridgePlatform
- * This class is the main constructor for your plugin, this is where you should
- * parse the user config and discover/register accessories with Homebridge.
- */
-export class ExampleHomebridgePlatform implements DynamicPlatformPlugin {
+import arp from '@network-utils/arp-lookup';
+import fetch from 'node-fetch';
+
+export class DIYHomebridgePlatform implements DynamicPlatformPlugin {
+
   public readonly Service: typeof Service = this.api.hap.Service;
   public readonly Characteristic: typeof Characteristic = this.api.hap.Characteristic;
-
-  // this is used to track restored cached accessories
   public readonly accessories: PlatformAccessory[] = [];
 
-  constructor(
-    public readonly log: Logger,
-    public readonly config: PlatformConfig,
-    public readonly api: API,
-  ) {
+  constructor(public readonly log: Logger, public readonly config: PlatformConfig, public readonly api: API ) {
     this.log.debug('Finished initializing platform:', this.config.name);
 
-    // When this event is fired it means Homebridge has restored all cached accessories from disk.
-    // Dynamic Platform plugins should only register new accessories after this event was fired,
-    // in order to ensure they weren't added to homebridge already. This event can also be used
-    // to start discovery of new accessories.
     this.api.on('didFinishLaunching', () => {
-      log.debug('Executed didFinishLaunching callback');
-      // run the method to discover / register your devices as accessories
-      this.discoverDevices();
+      this.log.debug('Did finish launching!');
+      this.discoverLightstripes();
     });
   }
 
-  /**
-   * This function is invoked when homebridge restores cached accessories from disk at startup.
-   * It should be used to setup event handlers for characteristics and update respective values.
-   */
   configureAccessory(accessory: PlatformAccessory) {
     this.log.info('Loading accessory from cache:', accessory.displayName);
 
@@ -44,73 +27,61 @@ export class ExampleHomebridgePlatform implements DynamicPlatformPlugin {
     this.accessories.push(accessory);
   }
 
-  /**
-   * This is an example method showing how to register discovered accessories.
-   * Accessories must only be registered once, previously created accessories
-   * must not be registered again to prevent "duplicate UUID" errors.
-   */
-  discoverDevices() {
-
-    // EXAMPLE ONLY
-    // A real plugin you would discover accessories from the local network, cloud services
-    // or a user-defined array in the platform config.
-    const exampleDevices = [
-      {
-        exampleUniqueId: 'ABCD',
-        exampleDisplayName: 'Bedroom',
-      },
-      {
-        exampleUniqueId: 'EFGH',
-        exampleDisplayName: 'Kitchen',
-      },
-    ];
-
-    // loop over the discovered devices and register each one if it has not already been registered
-    for (const device of exampleDevices) {
-
-      // generate a unique id for the accessory this should be generated from
-      // something globally unique, but constant, for example, the device serial
-      // number or MAC address
-      const uuid = this.api.hap.uuid.generate(device.exampleUniqueId);
-
-      // see if an accessory with the same uuid has already been registered and restored from
-      // the cached devices we stored in the `configureAccessory` method above
-      const existingAccessory = this.accessories.find(accessory => accessory.UUID === uuid);
-
-      if (existingAccessory) {
-        // the accessory already exists
-        this.log.info('Restoring existing accessory from cache:', existingAccessory.displayName);
-
-        // if you need to update the accessory.context then you should run `api.updatePlatformAccessories`. eg.:
-        // existingAccessory.context.device = device;
-        // this.api.updatePlatformAccessories([existingAccessory]);
-
-        // create the accessory handler for the restored accessory
-        // this is imported from `platformAccessory.ts`
-        new ExamplePlatformAccessory(this, existingAccessory);
-
-        // it is possible to remove platform accessories at any time using `api.unregisterPlatformAccessories`, eg.:
-        // remove platform accessories when no longer present
-        // this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [existingAccessory]);
-        // this.log.info('Removing existing accessory from cache:', existingAccessory.displayName);
-      } else {
-        // the accessory does not yet exist, so we need to create it
-        this.log.info('Adding new accessory:', device.exampleDisplayName);
-
-        // create a new accessory
-        const accessory = new this.api.platformAccessory(device.exampleDisplayName, uuid);
-
-        // store a copy of the device object in the `accessory.context`
-        // the `context` property can be used to store any data about the accessory you may need
-        accessory.context.device = device;
-
-        // create the accessory handler for the newly create accessory
-        // this is imported from `platformAccessory.ts`
-        new ExamplePlatformAccessory(this, accessory);
-
-        // link the accessory to your platform
-        this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
-      }
-    }
+  async discoverLightstripes() {
+    arp.getTable().then( net_devices => {
+      net_devices.forEach( net_device => {
+        this.log.debug(net_device.ip);
+        fetch('http://' + net_device.ip + '/detect', { method: 'GET', headers: { Accept: 'application/json' }})
+          .then( response => response.json())
+          .then( data => {
+            this.log.debug(data);
+            if ('type' in data) {
+              if(data.type === 'ws2812_strip') {
+                if ('protocol' in data) {
+                  if(data.protocol === 'native_multi') {
+                    this.log.debug('Discovered a Lightstripe with ' + data.lights + ' subunits');
+                    for (let i = 0; i < data.lights; i++) {
+                      const uuid = this.api.hap.uuid.generate(net_device.mac + '_' + (i + 1));
+                      const existingAccessory = this.accessories.find(accessory => accessory.UUID === uuid);
+                      if (existingAccessory) {
+                        this.log.info('Restoring existing accessory from cache:', existingAccessory.displayName);
+                        new Lightstripe(this, existingAccessory, net_device.ip, (i + 1));
+                      } else {
+                        this.log.info('Adding Lightstripe:', data.name);
+                        const accessory = new this.api.platformAccessory(data.name, uuid);
+                        accessory.context.device = data;
+                        new Lightstripe(this, accessory, net_device.ip, (i + 1));
+                        this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
+                      }
+                    }
+                  } else {
+                    this.log.debug(net_device.ip + ' -> no lightstripe (INVALID PROTOCOL)');
+                  }
+                } else {
+                  this.log.debug(net_device.ip + ' -> no lightstripe (NOPROTOCOL)');
+                }
+              } else {
+                this.log.debug(net_device.ip + ' -> no lightstripe (INVALID TYPE)');
+              }
+            } else {
+              this.log.debug(net_device.ip + ' -> no lightstripe (NOTYPE)');
+            }
+          }).catch((e) => {
+            if (e instanceof Error) {
+              if(e.message.includes('EADDRNOTAVAIL')) {
+                this.log.debug(net_device.ip + ' -> no lightstripe (EADDRNOTAVAIL)');
+              } else if (e.message.includes('ECONNREFUSED')) {
+                this.log.debug(net_device.ip + ' -> no lightstripe (ECONNREFUSED)');
+              } else if (e.name.includes('SyntaxError')) {
+                this.log.debug(net_device.ip + ' -> no lightstripe (Syntax Error)');
+              } else if (e.message.includes('ETIMEDOUT')) {
+                this.log.debug(net_device.ip + ' -> no lightstripe (ETIMEDOUT)');
+              } else {
+                this.log.error(e.name + ' - ' + e.message);
+              }
+            }
+          });
+      });
+    });
   }
 }
