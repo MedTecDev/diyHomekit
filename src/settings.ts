@@ -6,4 +6,4 @@ export const PLATFORM_NAME = 'DIY_Homekit';
 /**
  * This must match the name of your plugin as defined the package.json
  */
-export const PLUGIN_NAME = '@medTecDev/homebridge-diyhomekit';
+export const PLUGIN_NAME = '@medtecdev/homebridge-diyhomekit';
