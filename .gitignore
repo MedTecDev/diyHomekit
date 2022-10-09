@@ -30,6 +30,7 @@ coverage
 # package lock file
 .package-lock.json
 package-lock.json
+/package-lock.json
 
 # nyc test coverage
 .nyc_output
