@@ -1,16 +1,16 @@
 {
-  "private": true,
-  "displayName": "Plugin Name",
-  "name": "homebridge-plugin-name",
+  "private": "true",
+  "displayName": "DIY HomeKit",
+  "name": "@MedTecDev/homebridge-diyHomekit",
   "version": "1.0.0",
-  "description": "A short description about what your plugin does.",
+  "description": "Hoobs/Homekit Plugin to connect custom made hardware.",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "git://github.com/USERNAME/GITHUB_PROJECT_NAME.git"
+    "url": "git://https://github.com/MedTecDev/diyHomekit.git"
   },
   "bugs": {
-    "url": "https://github.com/USERNAME/GITHUB_PROJECT_NAME/issues"
+    "url": "https://github.com/MedTecDev/diyHomekit/issues"
   },
   "engines": {
     "node": ">=14.18.1",
@@ -24,9 +24,12 @@
     "prepublishOnly": "npm run lint && npm run build"
   },
   "keywords": [
-    "homebridge-plugin"
+    "homebridge-plugin",
+    "diy"
   ],
-  "dependencies": {},
+  "dependencies": {
+    "@network-utils/arp-lookup": "^2.0.1"
+  },
   "devDependencies": {
     "@types/node": "^16.10.9",
     "@typescript-eslint/eslint-plugin": "^5.0.0",
