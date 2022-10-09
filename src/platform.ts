@@ -77,7 +77,7 @@ export class DIYHomebridgePlatform implements DynamicPlatformPlugin {
               } else if (e.message.includes('ETIMEDOUT')) {
                 this.log.debug(net_device.ip + ' -> no lightstripe (ETIMEDOUT)');
               } else {
-                this.log.error(e.name + ' - ' + e.message);
+                this.log.debug(e.name + ' - ' + e.message);
               }
             }
           });
