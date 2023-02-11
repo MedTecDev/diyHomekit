@@ -79,6 +79,10 @@ export class Lightstripe {
     if(value === 'True' || value === 'true' || value) {
       state = true;
     }
+
+    //save state
+    this.actualState.on = state;
+
     // create new state
     const newstate : StatusPacket = {
       on: state,
@@ -90,14 +94,7 @@ export class Lightstripe {
   /** GET On/Off **/
   async getOn(): Promise<CharacteristicValue> {
     this.platform.log.debug('getOn for', this.accessory.context.device.name);
-    return this.getValue()
-      .then(status => {
-        if(status.on) {
-          return status.on;
-        } else {
-          return 0;
-        }
-      });
+    return this.actualState.on;
   }
 
   /** SET Brightness **/
