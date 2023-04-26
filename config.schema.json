@@ -12,10 +12,121 @@
         "default": "DIY Homekit"
       },
       "updateInterval": {
-        "title": "Check lightstate interval [ms]",
+        "title": "Check lightstate interval [s]",
         "type": "number",
         "required": true,
-        "default": 30000
+        "default": 30
+      },
+      "webserver_port": {
+        "title": "Port of the Webserver",
+        "type": "number",
+        "required": true,
+        "default": 8587
+      },
+      "deviceList": {
+        "title": "Registered devices",
+        "expandable": true,
+        "type": "array",
+        "items": {
+          "title": "Device",
+          "expandable": true,
+          "type": "object",
+          "properties": {
+            "n": {
+              "title": "Device name",
+              "type": "string",
+              "required": true
+            },
+            "mac": {
+                "title": "MAC Address",
+                "type": "string",
+                "required": true
+            },
+            "s": {
+              "title": "Default state of the light",
+              "type": "number",
+              "default": 1,
+              "oneOf": [
+                { "title": "Last State", "enum": [1] },
+                { "title": "On", "enum": [2] },
+                { "title": "Off", "enum": [3] }
+              ],
+              "required": true
+            },
+            "sc": {
+              "title": "Default scene",
+              "type": "number",
+              "default" : 1,
+              "required": true
+            },
+            "tc": {
+              "title": "Transition pixel count",
+              "type": "number",
+              "required": true
+            },
+            "pc": {
+              "title": "Pixel count",
+              "type": "number",
+              "required": true
+            },
+            "rp": {
+              "title": "Red multiplier",
+              "type": "number",
+              "default": 100,
+              "required": true
+            },
+            "gp": {
+              "title": "Green multiplier",
+              "type": "number",
+              "default": 100,
+              "required": true
+            },
+            "bp": {
+              "title": "Blue multiplier",
+              "type": "number",
+              "default": 100,
+              "required": true
+            },
+            "dhcp": {
+              "title": "Use DHCP",
+              "type": "boolean",
+              "default": true,
+              "required": true
+            },
+            "addr": {
+              "title": "Address",
+              "type": "string",
+              "format": "ipv4"
+            },
+            "gw": {
+              "title": "Gateway",
+              "type": "string",
+              "format": "ipv4"
+            },
+            "mask": {
+              "title": "Network Mask",
+              "type": "string",
+              "format": "ipv4",
+              "default": "255.255.255.0"
+            },
+            "sub": {
+              "title": "Lightstripes",
+              "expandable": true,
+              "type": "array",
+              "items": {
+                "title":"Subunit",
+                "type":"object",
+                "properties": {
+                  "pc": {
+                    "title":"Pixel Count",
+                    "type": "number",
+                    "required": true
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
   }
