@@ -1,7 +1,7 @@
 {
   "displayName": "DIY HomeKit",
   "name": "@medtecdev/homebridge-diyhomekit",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "Hoobs/Homekit Plugin to connect custom made hardware.",
   "license": "Apache-2.0",
   "repository": {
