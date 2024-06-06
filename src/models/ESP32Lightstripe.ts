@@ -1,5 +1,5 @@
 export interface ESP32Lightstripe {
-    namet: string;
+    name: string;
     lights: number;
     protocol: string;
     modelid: string;
